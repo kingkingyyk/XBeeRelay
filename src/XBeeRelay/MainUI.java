@@ -8,6 +8,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JTabbedPane;
 
@@ -33,6 +35,27 @@ public class MainUI extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowActivated(WindowEvent arg0) {}
+
+			@Override
+			public void windowClosed(WindowEvent arg0) {}
+
+			@Override public void windowClosing(WindowEvent arg0) {
+				if (XBeeRelay.xbee!=null && XBeeRelay.xbee.isOpen()) XBeeRelay.xbee.close();
+			}
+
+			@Override public void windowDeactivated(WindowEvent arg0) {}
+
+			@Override public void windowDeiconified(WindowEvent arg0) {}
+
+			@Override public void windowIconified(WindowEvent arg0) {}
+
+			@Override public void windowOpened(WindowEvent arg0) {}
+			
+		});
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setBounds(10, 11, 414, 239);

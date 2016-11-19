@@ -2,9 +2,8 @@ package XBeeRelay;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
+import javax.swing.JOptionPane;
 import com.digi.xbee.api.XBeeDevice;
-import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.listeners.IPacketReceiveListener;
 import com.digi.xbee.api.models.XBee16BitAddress;
 import com.digi.xbee.api.packet.XBeePacket;
@@ -27,10 +26,16 @@ public class XBeeRelay {
 	
 	public static void createProcess (String portName, int baudrate, String forwardIP, int forwardPort, int listeningPort) {
 		xbee=new XBeeDevice(portName,baudrate);
-		try {
-			xbee.open();
+
+		for (int i=0;i<10 && !xbee.isOpen();i++) {
+
+			try { xbee.close(); xbee.open(); } catch (Exception e) { e.printStackTrace();}
+			try { Thread.sleep(1000); } catch (InterruptedException e) {}
+		}
+
+		if (xbee.isOpen()) {
 			xbee.addPacketListener(new IPacketReceiveListener() {
-	
+				
 				@Override
 				public void packetReceived(XBeePacket arg0) {
 					String [] split=arg0.getParameters().get("RF data").split(" ");
@@ -48,18 +53,17 @@ public class XBeeRelay {
 				}
 				
 			});
-		} catch (XBeeException e) {
-			e.printStackTrace();
+			
+			XBeeToIP xi=new XBeeToIP(); xi.forwardIP=forwardIP; xi.port=forwardPort;
+			xi.start();
+			
+			IPToXBee ix=new IPToXBee(); ix.port=listeningPort;
+			ix.start();
+			
+			DeviceDiscovery dd=new DeviceDiscovery(); dd.start();
+		} else {
+			JOptionPane.showMessageDialog(null,"Fail to connect to XBee!","Error",JOptionPane.ERROR_MESSAGE);
 		}
-		
-		while (!xbee.isOpen()) {}
-		XBeeToIP xi=new XBeeToIP(); xi.forwardIP=forwardIP; xi.port=forwardPort;
-		xi.start();
-		
-		IPToXBee ix=new IPToXBee(); ix.port=listeningPort;
-		ix.start();
-		
-		DeviceDiscovery dd=new DeviceDiscovery(); dd.start();
 	}
 	
 }
